@@ -18,14 +18,3 @@ services:
       - $PWD/redis.conf:/usr/local/etc/redis/redis.conf
     networks:
       my-network:
-
-  bot:
-    build:
-      context: .
-    container_name: bot
-    env_file:
-      - .env
-    depends_on:
-      - redis
-    networks:
-      my-network:

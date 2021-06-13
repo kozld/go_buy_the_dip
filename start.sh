@@ -2,7 +2,11 @@
 
 ./stop.sh
 
-docker-compose build --no-cache
-docker-compose up -d redis
+source .env
+
+docker build --no-cache -t go_binance_bot .
+
+docker-compose -f redis/docker-compose.yaml up -d
 sleep 15
-docker-compose up -d bot
+
+docker run --name bot -e API_KEY=${API_KEY} -e API_SECRET=${API_SECRET} --network=host -d go_binance_bot
