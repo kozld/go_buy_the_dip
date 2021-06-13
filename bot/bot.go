@@ -51,7 +51,7 @@ func NewBinanceBot(deposit float64, period int, takeProfit float64, timeFrame fl
 func (b *binanceBot) CreateBuyOrder(qty string) error {
 	_, err := b.client.NewCreateOrderService().Symbol(tradePair).
 		Side(binance.SideTypeBuy).Type(binance.OrderTypeMarket).
-		TimeInForce(binance.TimeInForceTypeGTC).Quantity(qty).Do(context.Background())
+		Quantity(qty).Do(context.Background())
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -62,7 +62,7 @@ func (b *binanceBot) CreateBuyOrder(qty string) error {
 func (b *binanceBot) CreateSellOrder(qty string) error {
 	_, err := b.client.NewCreateOrderService().Symbol(tradePair).
 		Side(binance.SideTypeSell).Type(binance.OrderTypeMarket).
-		TimeInForce(binance.TimeInForceTypeGTC).Quantity(qty).Do(context.Background())
+		Quantity(qty).Do(context.Background())
 	if err != nil {
 		fmt.Println(err)
 	}
