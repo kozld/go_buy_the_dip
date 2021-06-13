@@ -21,10 +21,10 @@ services:
 
   bot:
     build:
-      context: ./
+      context: .
     container_name: bot
     env_file:
-      - ./.env
+      - .env
     depends_on:
       - redis
     networks:

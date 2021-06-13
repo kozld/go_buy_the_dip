@@ -20,7 +20,7 @@ var (
 	wsKlineInterval = "1m"
 
 	apiKey    = os.Getenv("API_KEY")
-	secretKey = os.Getenv("API_SECRET")
+	apiSecret = os.Getenv("API_SECRET")
 )
 
 type binanceBot struct {
@@ -33,7 +33,10 @@ type binanceBot struct {
 func NewBinanceBot(deposit float64, period int, takeProfit float64, timeFrame float64, timeout float64) Bot {
 	time1 = time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 
-	client := binance.NewClient(apiKey, secretKey)
+	fmt.Println("API_KEY", apiKey)
+	fmt.Println("API_SECRET", apiSecret)
+
+	client := binance.NewClient(apiKey, apiSecret)
 	store := store.NewRedisStore()
 	strategy := strategy.NewFirstStrategy(store, deposit, takeProfit, period, timeout)
 
