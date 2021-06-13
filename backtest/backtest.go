@@ -2,7 +2,6 @@ package backtest
 
 import (
 	"encoding/csv"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -19,9 +18,9 @@ var (
 )
 
 type backTestBot struct {
-	filename string
-	strategy *strategy.FirstStrategy
-	balance float64
+	filename  string
+	strategy  *strategy.FirstStrategy
+	balance   float64
 	timeFrame float64
 }
 
@@ -59,13 +58,13 @@ func (b *backTestBot) HandleCandle(time2 time.Time, price float64) error {
 
 func (b *backTestBot) Start() float64 {
 
-	fmt.Printf("====================================\n")
-	fmt.Printf("DEPOSIT     \t\t%f\n", b.strategy.Deposit)
-	fmt.Printf("RSI PERIOD  \t\t%d\n", b.strategy.RSIPeriod)
-	fmt.Printf("TAKE PROFIT \t\t%f\n", b.strategy.TakeProfit)
-	fmt.Printf("TIME FRAME  \t\t%f\n", b.timeFrame)
-	fmt.Printf("TIME OUT    \t\t%f\n", b.strategy.Timeout)
-	fmt.Printf("====================================\n")
+	//fmt.Printf("====================================\n")
+	//fmt.Printf("DEPOSIT     \t\t%f\n", b.strategy.Deposit)
+	//fmt.Printf("RSI PERIOD  \t\t%d\n", b.strategy.RSIPeriod)
+	//fmt.Printf("TAKE PROFIT \t\t%f\n", b.strategy.TakeProfit)
+	//fmt.Printf("TIME FRAME  \t\t%f\n", b.timeFrame)
+	//fmt.Printf("TIME OUT    \t\t%f\n", b.strategy.Timeout)
+	//fmt.Printf("====================================\n")
 
 	file, err := os.Open(b.filename)
 	if err != nil {
@@ -88,7 +87,7 @@ func (b *backTestBot) Start() float64 {
 		if err != nil {
 			panic(err)
 		}
-		tm := time.Unix(i / 1000, 0)
+		tm := time.Unix(i/1000, 0)
 
 		price, err := strconv.ParseFloat(record[4], 64)
 		if err != nil {

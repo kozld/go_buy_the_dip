@@ -1,68 +1,53 @@
 package main
 
 import (
-	"buyTheDip/backtest"
+	"buyTheDip/bot"
 	"flag"
-	"fmt"
-	"os"
 )
 
 func main() {
 
-	filename := flag.String("filename", "", "Path to CSV file with historical data. (Required)")
+	// filename := flag.String("filename", "", "Path to CSV file with historical data. (Required)")
 	deposit := flag.Float64("deposit", 1000, "Deposit amount. (Default: 1000)")
-	// period := flag.Int("period", 5, "RSI period. (Default: 14)")
+	period := flag.Int("period", 5, "RSI period. (Default: 14)")
 	takeProfit := flag.Float64("takeProfit", 0.3, "Take profit percentage. (Default: 2.5)")
-	// timeFrame := flag.Float64("timeFrame", 1, "Time frame in minutes. (Default: 1)")
-	// timeout := flag.Float64("timeout", 5, "Timeout in hours. (Default: 5)")
+	timeFrame := flag.Float64("timeFrame", 1, "Time frame in minutes. (Default: 1)")
+	timeout := flag.Float64("timeout", 5, "Timeout in hours. (Default: 5)")
 	flag.Parse()
 
-	if *filename == "" {
-		flag.PrintDefaults()
-		os.Exit(1)
-	}
+	//if *filename == "" {
+	//	flag.PrintDefaults()
+	//	os.Exit(1)
+	//}
 
-	rsiStart := 5
-	rsiEnd := 5
-	frameStart := 1
-	frameEnd := 1
-	timeoutStart := 5
-	timeoutEnd := 5
-	timeoutStep := 1
+	bot := bot.NewBinanceBot(*deposit, *period, *takeProfit, *timeFrame, *timeout)
+	bot.Start()
 
-	bestProfit := -9999.0
-	bestRsi := rsiStart
-	bestFrame := frameStart
-	bestTimeout := timeoutStart
+	//deposit := 1000.0
+	//takeProfit := 0.3
+	//
+	//rsi := 5
+	//timeFrame := 1
+	//timeout := 5
+	//
+	//totalProfit := 0.0
+	//for day := 1; day <= 30; day++ {
+	//
+	//	filename := fmt.Sprintf("backtest/fixtures/day_%d.csv", day)
+	//
+	//	bot := backtest.NewBackTestBot(filename, deposit, rsi, takeProfit, float64(timeFrame), float64(timeout))
+	//	profit := bot.Start()
+	//	totalProfit += profit
+	//
+	//	fmt.Printf("Day %d\nDay profit: %f$\nTotal profit: %f$\n", day, profit, totalProfit)
 
-	for rsi := rsiStart; rsi <= rsiEnd; rsi++ {
-		for frame := frameStart; frame <= frameEnd; frame++ {
-			for timeout := timeoutStart; timeout <= timeoutEnd; timeout += timeoutStep {
+	//fmt.Println("Recalibration...")
+	//rsi, timeFrame, timeout = utils.BruteForce(filename, deposit, takeProfit)
 
-				bot := backtest.NewBackTestBot(*filename, *deposit, rsi, *takeProfit, float64(frame), float64(timeout))
-				profit := bot.Start()
+	//if profit < -30 {
+	//	fmt.Println("Recalibration...")
+	//	rsi, timeFrame, timeout = utils.BruteForce(filename, deposit, takeProfit)
+	//}
+	//}
 
-				fmt.Printf("[PROFIT] %f\n", profit)
-				fmt.Printf("[RSI] %d\n", rsi)
-				fmt.Printf("[FRAME] %d\n", frame)
-				fmt.Printf("[TIMEOUT] %d\n", timeout)
-
-				if profit > bestProfit {
-					bestProfit = profit
-					bestRsi = rsi
-					bestFrame = frame
-					bestTimeout = timeout
-				}
-
-				//time.Sleep(1 * time.Second)
-			}
-		}
-	}
-
-	fmt.Printf("====================================\n")
-	fmt.Printf("BEST PROFIT     \t\t%f\n", bestProfit)
-	fmt.Printf("BEST RSI  	   \t\t%d\n", bestRsi)
-	fmt.Printf("BEST FRAME  	   \t\t%d\n", bestFrame)
-	fmt.Printf("BEST TIMEOUT    \t\t%d\n", bestTimeout)
-	fmt.Printf("====================================\n")
 }
