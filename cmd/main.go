@@ -16,11 +16,11 @@ func main() {
 	flag.Parse()
 
 	botOptions := &bot.Options{
-		*deposit,
-		*period,
-		*takeProfit,
-		*timeFrame,
-		*timeout,
+		Deposit:    *deposit,
+		Period:     *period,
+		TakeProfit: *takeProfit,
+		TimeFrame:  *timeFrame,
+		Timeout:    *timeout,
 	}
 
 	bot := bot.NewBinanceBot(botOptions)
