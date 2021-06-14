@@ -49,5 +49,4 @@ func main() {
 	//	rsi, timeFrame, timeout = utils.BruteForce(filename, deposit, takeProfit)
 	//}
 	//}
-
 }

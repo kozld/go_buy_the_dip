@@ -2,6 +2,7 @@ package backtest
 
 import (
 	"encoding/csv"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -38,19 +39,25 @@ func NewBackTestBot(filename string, deposit float64, period int, takeProfit flo
 	}
 }
 
-func (b *backTestBot) HandleCandle(time2 time.Time, price float64) error {
+func (b *backTestBot) CreateBuyOrder(qty string) error {
+	return nil
+}
 
-	//fmt.Println("HANDLE CANDLE")
+func (b *backTestBot) CreateSellOrder(qty string) error {
+	return nil
+}
+
+func (b *backTestBot) HandleCandle(time2 time.Time, price float64) error {
 
 	var buyValue float64
 	time3 := time1.Add(time.Minute * time.Duration(int64(b.timeFrame)))
 	if time2.After(time3) {
-		buyValue = b.strategy.TryBuy(b.balance, time2, price)
+		buyValue = b.strategy.TryBuy(b.balance, time2, price, b.CreateBuyOrder)
 		b.balance -= buyValue
 		time1 = time2
 	}
 
-	sellValue := b.strategy.TrySell(time2, price)
+	sellValue := b.strategy.TrySell(time2, price, b.CreateSellOrder)
 	b.balance += sellValue
 
 	return nil
@@ -58,13 +65,13 @@ func (b *backTestBot) HandleCandle(time2 time.Time, price float64) error {
 
 func (b *backTestBot) Start() float64 {
 
-	//fmt.Printf("====================================\n")
-	//fmt.Printf("DEPOSIT     \t\t%f\n", b.strategy.Deposit)
-	//fmt.Printf("RSI PERIOD  \t\t%d\n", b.strategy.RSIPeriod)
-	//fmt.Printf("TAKE PROFIT \t\t%f\n", b.strategy.TakeProfit)
-	//fmt.Printf("TIME FRAME  \t\t%f\n", b.timeFrame)
-	//fmt.Printf("TIME OUT    \t\t%f\n", b.strategy.Timeout)
-	//fmt.Printf("====================================\n")
+	fmt.Printf("====================================\n")
+	fmt.Printf("DEPOSIT     \t\t%f\n", b.strategy.Deposit)
+	fmt.Printf("RSI PERIOD  \t\t%d\n", b.strategy.RSIPeriod)
+	fmt.Printf("TAKE PROFIT \t\t%f\n", b.strategy.TakeProfit)
+	fmt.Printf("TIME FRAME  \t\t%f\n", b.timeFrame)
+	fmt.Printf("TIME OUT    \t\t%f\n", b.strategy.Timeout)
+	fmt.Printf("====================================\n")
 
 	file, err := os.Open(b.filename)
 	if err != nil {
