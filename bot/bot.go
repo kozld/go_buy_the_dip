@@ -23,6 +23,14 @@ var (
 	apiSecret = os.Getenv("API_SECRET")
 )
 
+type Options struct {
+	Deposit    float64
+	Period     int
+	TakeProfit float64
+	TimeFrame  float64
+	Timeout    float64
+}
+
 type binanceBot struct {
 	client    *binance.Client
 	strategy  *strategy.FirstStrategy
@@ -30,21 +38,15 @@ type binanceBot struct {
 	timeFrame float64
 }
 
-func NewBinanceBot(deposit float64, period int, takeProfit float64, timeFrame float64, timeout float64) Bot {
+func NewBinanceBot(opt *Options) Bot {
 	time1 = time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
-
-	fmt.Println("API_KEY", apiKey)
-	fmt.Println("API_SECRET", apiSecret)
-
-	client := binance.NewClient(apiKey, apiSecret)
-	store := store.NewRedisStore()
-	strategy := strategy.NewFirstStrategy(store, deposit, takeProfit, period, timeout)
+	strategy := strategy.NewFirstStrategy(store.NewRedisStore(), opt.Deposit, opt.TakeProfit, opt.Period, opt.Timeout)
 
 	return &binanceBot{
-		client,
+		binance.NewClient(apiKey, apiSecret),
 		strategy,
 		strategy.Deposit,
-		timeFrame,
+		opt.TimeFrame,
 	}
 }
 

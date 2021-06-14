@@ -18,6 +18,15 @@ var (
 	time1 time.Time
 )
 
+type Options struct {
+	Filename   string
+	Deposit    float64
+	Period     int
+	TakeProfit float64
+	TimeFrame  float64
+	Timeout    float64
+}
+
 type backTestBot struct {
 	filename  string
 	strategy  *strategy.FirstStrategy
@@ -25,17 +34,15 @@ type backTestBot struct {
 	timeFrame float64
 }
 
-func NewBackTestBot(filename string, deposit float64, period int, takeProfit float64, timeFrame float64, timeout float64) bot.Bot {
+func NewBackTestBot(opt *Options) bot.Bot {
 	time1 = time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
-
-	store := store.NewRedisStore()
-	strategy := strategy.NewFirstStrategy(store, deposit, takeProfit, period, timeout)
+	strategy := strategy.NewFirstStrategy(store.NewRedisStore(), opt.Deposit, opt.TakeProfit, opt.Period, opt.Timeout)
 
 	return &backTestBot{
-		filename,
+		opt.Filename,
 		strategy,
 		strategy.Deposit,
-		timeFrame,
+		opt.TimeFrame,
 	}
 }
 
@@ -51,6 +58,7 @@ func (b *backTestBot) HandleCandle(time2 time.Time, price float64) error {
 
 	var buyValue float64
 	time3 := time1.Add(time.Minute * time.Duration(int64(b.timeFrame)))
+
 	if time2.After(time3) {
 		buyValue = b.strategy.TryBuy(b.balance, time2, price, b.CreateBuyOrder)
 		b.balance -= buyValue
