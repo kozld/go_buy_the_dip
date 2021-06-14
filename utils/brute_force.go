@@ -1,8 +1,9 @@
 package utils
 
 import (
-	"buyTheDip/backtest"
 	"fmt"
+
+	"buyTheDip/backtest"
 )
 
 func BruteForce(filename string, deposit float64, takeProfit float64) (int, int, int) {
@@ -26,10 +27,10 @@ func BruteForce(filename string, deposit float64, takeProfit float64) (int, int,
 				bot := backtest.NewBackTestBot(filename, deposit, rsi, takeProfit, float64(frame), float64(timeout))
 				profit := bot.Start()
 
-				//fmt.Printf("[PROFIT] %f\n", profit)
-				//fmt.Printf("[RSI] %d\n", rsi)
-				//fmt.Printf("[FRAME] %d\n", frame)
-				//fmt.Printf("[TIMEOUT] %d\n", timeout)
+				fmt.Printf("[PROFIT] %f\n", profit)
+				fmt.Printf("[RSI] %d\n", rsi)
+				fmt.Printf("[FRAME] %d\n", frame)
+				fmt.Printf("[TIMEOUT] %d\n", timeout)
 
 				if profit > bestProfit {
 					bestProfit = profit
@@ -37,8 +38,6 @@ func BruteForce(filename string, deposit float64, takeProfit float64) (int, int,
 					bestFrame = frame
 					bestTimeout = timeout
 				}
-
-				//time.Sleep(1 * time.Second)
 			}
 		}
 	}
