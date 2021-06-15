@@ -36,7 +36,7 @@ func (s *Strategy) isSellByTime(openTime time.Time, currentTime time.Time) bool 
 	return currentTime.Sub(openTime).Hours() >= s.Config.HoldTime
 }
 
-func (s *Strategy) TryBuy(balance float64, time time.Time, price float64, callback func(string) error) float64 {
+func (s *Strategy) TryBuy(balance float64, time time.Time, price float64, callback func(float64, string) error) float64 {
 
 	var rsi []float64
 
@@ -72,7 +72,7 @@ func (s *Strategy) TryBuy(balance float64, time time.Time, price float64, callba
 			if balance >= _qty*price {
 				fmt.Printf("BUY %f x %f$\n", _qty, price)
 
-				if err := callback(qty); err != nil {
+				if err := callback(price, qty); err != nil {
 					fmt.Printf("error: %v", err)
 					return 0
 				}
@@ -97,7 +97,7 @@ func (s *Strategy) TryBuy(balance float64, time time.Time, price float64, callba
 	return totalPrice
 }
 
-func (s *Strategy) TrySell(time time.Time, price float64, callback func(string) error) float64 {
+func (s *Strategy) TrySell(time time.Time, price float64, callback func(float64, string) error) float64 {
 
 	var _assets []store.Asset
 	assets, err := s.Store.Get()
@@ -116,7 +116,7 @@ func (s *Strategy) TrySell(time time.Time, price float64, callback func(string) 
 			fmt.Printf("PROFIT - %f\n", sellingPrice-purchasePrice)
 
 			qty := fmt.Sprintf("%.1f", asset.Qty)
-			if err := callback(qty); err != nil {
+			if err := callback(price, qty); err != nil {
 				fmt.Printf("error: %v", err)
 				return 0
 			}
@@ -128,7 +128,7 @@ func (s *Strategy) TrySell(time time.Time, price float64, callback func(string) 
 			fmt.Printf("PROFIT - %f\n", sellingPrice-purchasePrice)
 
 			qty := fmt.Sprintf("%.1f", asset.Qty)
-			if err := callback(qty); err != nil {
+			if err := callback(price, qty); err != nil {
 				fmt.Printf("error: %v", err)
 				return 0
 			}

@@ -3,6 +3,7 @@ package bot
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -34,25 +35,39 @@ func NewBinanceBot(cfg *config.BotConfig, strategy *strategy.Strategy) Bot {
 	}
 }
 
-func (b *BinanceBot) CreateBuyOrder(qty string) error {
+func (b *BinanceBot) CreateBuyOrder(price float64, qty string) error {
 
 	_, err := b.Client.NewCreateOrderService().Symbol(b.Config.Ticker).
 		Side(binance.SideTypeBuy).Type(binance.OrderTypeMarket).
 		Quantity(qty).Do(context.Background())
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("error: %v", err)
+		return err
+	}
+
+	msg := fmt.Sprintf("BUY #%s: $%.2f x %s", b.Config.Ticker, price, qty)
+	err = b.SendMessage(msg)
+	if err != nil {
+		log.Printf("error: %v", err)
 	}
 
 	return err
 }
 
-func (b *BinanceBot) CreateSellOrder(qty string) error {
+func (b *BinanceBot) CreateSellOrder(price float64, qty string) error {
 
 	_, err := b.Client.NewCreateOrderService().Symbol(b.Config.Ticker).
 		Side(binance.SideTypeSell).Type(binance.OrderTypeMarket).
 		Quantity(qty).Do(context.Background())
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("error: %v", err)
+		return err
+	}
+
+	msg := fmt.Sprintf("SELL #%s: $%.2f x %s", b.Config.Ticker, price, qty)
+	err = b.SendMessage(msg)
+	if err != nil {
+		log.Printf("error: %v", err)
 	}
 
 	return err
