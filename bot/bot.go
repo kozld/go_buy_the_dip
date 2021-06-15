@@ -16,6 +16,7 @@ import (
 var (
 	time1           time.Time
 	wsKlineInterval = "1m"
+	mainAsset       = "USDT"
 )
 
 type BinanceBot struct {
@@ -27,9 +28,6 @@ type BinanceBot struct {
 func NewBinanceBot(cfg *config.BotConfig, strategy *strategy.Strategy) Bot {
 
 	time1 = time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
-
-	fmt.Println("API_KEY", cfg.BinanceApi)
-	fmt.Println("API_SECRET", cfg.BinanceSecret)
 
 	return &BinanceBot{
 		Client:   binance.NewClient(cfg.BinanceApi, cfg.BinanceSecret),
@@ -103,7 +101,7 @@ func (b *BinanceBot) HandleCandle(time2 time.Time, price float64) error {
 	time3 := time1.Add(time.Minute * time.Duration(int64(b.Config.TimeFrame)))
 	if time2.After(time3) {
 
-		balance, err := b.GetBalance(b.Config.Ticker)
+		balance, err := b.GetBalance(mainAsset)
 		if err != nil {
 			fmt.Printf("error: %v", err)
 			return err
