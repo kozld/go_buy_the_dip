@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	"os"
 )
 
 var (
-	key = "assets"
-	ctx = context.Background()
+	key      = "assets"
+	ctx      = context.Background()
+	redisPwd = os.Getenv("REDIS_PASSWORD")
 )
 
 type RedisStore struct {
@@ -19,8 +21,8 @@ type RedisStore struct {
 func NewRedisStore() Store {
 	client := redis.NewClient(&redis.Options{
 		Addr:     "0.0.0.0:6379",
-		Password: "", // no password set
-		DB:       1,  // use default DB
+		Password: redisPwd, // no password set
+		DB:       1,        // use default DB
 	})
 
 	return &RedisStore{client}
