@@ -112,6 +112,7 @@ func (b *BinanceBot) Start() float64 {
 
 	wsKlineHandler := func(event *binance.WsKlineEvent) {
 		time := time.Unix(event.Time/1000, 0)
+
 		price, err := strconv.ParseFloat(event.Kline.Close, 64)
 		if err != nil {
 			panic(err)
