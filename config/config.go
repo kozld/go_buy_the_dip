@@ -13,7 +13,7 @@ type BotConfig struct {
 	// amount of the deposit in the main currency
 	Deposit float64 `env:"DEPOSIT" envDefault:"1000"`
 	// take profit in percentage
-	TakeProfit float64 `env:"TAKE_PROFIT" envDefault:"2.5"`
+	TakeProfit float64 `env:"TAKE_PROFIT" envDefault:"0.3"`
 	// time frame in minutes
 	TimeFrame float64 `env:"TIME_FRAME" envDefault:"1"`
 	// hold time in hours
