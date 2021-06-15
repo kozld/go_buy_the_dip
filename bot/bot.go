@@ -28,6 +28,9 @@ func NewBinanceBot(cfg *config.BotConfig, strategy *strategy.Strategy) Bot {
 
 	time1 = time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 
+	fmt.Println("API_KEY", cfg.BinanceApi)
+	fmt.Println("API_SECRET", cfg.BinanceSecret)
+
 	return &BinanceBot{
 		Client:   binance.NewClient(cfg.BinanceApi, cfg.BinanceSecret),
 		Strategy: strategy,
