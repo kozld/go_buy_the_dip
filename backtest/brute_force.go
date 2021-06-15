@@ -1,12 +1,13 @@
-package utils
+package backtest
 
 import (
+	"buyTheDip/config"
+	"buyTheDip/store"
+	"buyTheDip/strategy"
 	"fmt"
-
-	"buyTheDip/backtest"
 )
 
-func BruteForce(filename string, deposit float64, takeProfit float64) (int, int, int) {
+func BruteForce(filename string) (int, int, int) {
 	rsiStart := 2
 	rsiEnd := 10
 	frameStart := 1
@@ -20,11 +21,15 @@ func BruteForce(filename string, deposit float64, takeProfit float64) (int, int,
 	bestFrame := frameStart
 	bestTimeout := timeoutStart
 
+	cfg := config.GetConfig()
+	store := store.NewRedisStore()
+	strategy := strategy.NewStrategy(store, &cfg)
+
 	for rsi := rsiStart; rsi <= rsiEnd; rsi++ {
 		for frame := frameStart; frame <= frameEnd; frame++ {
 			for timeout := timeoutStart; timeout <= timeoutEnd; timeout += timeoutStep {
 
-				bot := backtest.NewBackTestBot(filename, deposit, rsi, takeProfit, float64(frame), float64(timeout))
+				bot := NewBackTestBot(filename, &cfg, strategy)
 				profit := bot.Start()
 
 				fmt.Printf("[PROFIT] %f\n", profit)
