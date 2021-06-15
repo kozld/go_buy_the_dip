@@ -7,6 +7,7 @@ import (
 
 	"github.com/markcheno/go-talib"
 
+	"buyTheDip/config"
 	"buyTheDip/store"
 )
 
@@ -15,34 +16,27 @@ var (
 	prevRsi float64
 )
 
-type FirstStrategy struct {
-	Store      store.Store
-	Deposit    float64
-	TakeProfit float64
-	RSIPeriod  int
-	Timeout    float64
-	Profit     float64
+type Strategy struct {
+	Store  store.Store
+	Config *config.BotConfig
 }
 
-func NewFirstStrategy(store store.Store, deposit float64, takeProfit float64, RSIPeriod int, timeout float64) *FirstStrategy {
-	return &FirstStrategy{
-		Store:      store,
-		Deposit:    deposit,
-		TakeProfit: takeProfit,
-		RSIPeriod:  RSIPeriod,
-		Timeout:    timeout,
+func NewStrategy(store store.Store, cfg *config.BotConfig) *Strategy {
+	return &Strategy{
+		Store:  store,
+		Config: cfg,
 	}
 }
 
-func (s *FirstStrategy) isSellByTakeProfit(buyPrice float64, sellPrice float64) bool {
-	return (sellPrice-buyPrice)/buyPrice*100 >= s.TakeProfit
+func (s *Strategy) isSellByTakeProfit(buyPrice float64, sellPrice float64) bool {
+	return (sellPrice-buyPrice)/buyPrice*100 >= s.Config.TakeProfit
 }
 
-func (s *FirstStrategy) isSellByTime(openTime time.Time, currentTime time.Time) bool {
-	return currentTime.Sub(openTime).Hours() >= s.Timeout
+func (s *Strategy) isSellByTime(openTime time.Time, currentTime time.Time) bool {
+	return currentTime.Sub(openTime).Hours() >= s.Config.HoldTime
 }
 
-func (s *FirstStrategy) TryBuy(balance float64, time time.Time, price float64, callback func(string) error) float64 {
+func (s *Strategy) TryBuy(balance float64, time time.Time, price float64, callback func(string) error) float64 {
 
 	var rsi []float64
 
@@ -52,24 +46,23 @@ func (s *FirstStrategy) TryBuy(balance float64, time time.Time, price float64, c
 	}
 
 	prices = append(prices, price)
-	if len(prices) > s.RSIPeriod {
-		rsi = talib.Rsi(prices, s.RSIPeriod)
-		prices = prices[len(prices)-s.RSIPeriod:]
+	if len(prices) > s.Config.RsiPeriod {
+		rsi = talib.Rsi(prices, s.Config.RsiPeriod)
+		prices = prices[len(prices)-s.Config.RsiPeriod:]
 	}
 
 	totalPrice := .0
 
 	if len(rsi) > 0 {
-
 		fmt.Println("RSI -", rsi[len(rsi)-1])
 
-		if prevRsi >= 30 && rsi[len(rsi)-1] < 30 {
+		if prevRsi >= s.Config.RsiOversold && rsi[len(rsi)-1] < s.Config.RsiOversold {
 
 			fmt.Println("!!! OVERSOLD !!!")
 			fmt.Println("RSI -", rsi[len(rsi)-1])
 			fmt.Println("PRICE -", price)
 
-			qty := fmt.Sprintf("%.1f", s.Deposit/price/4)
+			qty := fmt.Sprintf("%.1f", s.Config.Deposit/price/4)
 
 			_qty, err := strconv.ParseFloat(qty, 64)
 			if err != nil {
@@ -104,7 +97,7 @@ func (s *FirstStrategy) TryBuy(balance float64, time time.Time, price float64, c
 	return totalPrice
 }
 
-func (s *FirstStrategy) TrySell(time time.Time, price float64, callback func(string) error) float64 {
+func (s *Strategy) TrySell(time time.Time, price float64, callback func(string) error) float64 {
 
 	var _assets []store.Asset
 	assets, err := s.Store.Get()
@@ -128,7 +121,7 @@ func (s *FirstStrategy) TrySell(time time.Time, price float64, callback func(str
 				return 0
 			}
 
-			s.Profit += sellingPrice - purchasePrice
+			// s.Profit += sellingPrice - purchasePrice
 			totalPrice += sellingPrice
 		} else if s.isSellByTakeProfit(asset.Price, price) {
 			fmt.Printf("SELL BY TAKE PROFIT %f x %f$\n", asset.Qty, price)
@@ -140,7 +133,7 @@ func (s *FirstStrategy) TrySell(time time.Time, price float64, callback func(str
 				return 0
 			}
 
-			s.Profit += sellingPrice - purchasePrice
+			// s.Profit += sellingPrice - purchasePrice
 			totalPrice += sellingPrice
 		} else {
 			_assets = append(_assets, asset)

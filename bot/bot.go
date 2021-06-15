@@ -3,55 +3,40 @@ package bot
 import (
 	"context"
 	"fmt"
-	"os"
 	"strconv"
 	"time"
 
 	"github.com/adshao/go-binance/v2"
 
-	"buyTheDip/store"
+	"buyTheDip/config"
 	"buyTheDip/strategy"
 )
 
 var (
-	time1 time.Time
-
-	tradePair       = "DOGEUSDT"
+	time1           time.Time
 	wsKlineInterval = "1m"
-
-	apiKey    = os.Getenv("API_KEY")
-	apiSecret = os.Getenv("API_SECRET")
 )
 
-type Options struct {
-	Deposit    float64
-	Period     int
-	TakeProfit float64
-	TimeFrame  float64
-	Timeout    float64
+type BinanceBot struct {
+	Client   *binance.Client
+	Strategy *strategy.Strategy
+	Config   *config.BotConfig
 }
 
-type binanceBot struct {
-	client    *binance.Client
-	strategy  *strategy.FirstStrategy
-	balance   float64
-	timeFrame float64
-}
+func NewBinanceBot(cfg *config.BotConfig, strategy *strategy.Strategy) Bot {
 
-func NewBinanceBot(opt *Options) Bot {
 	time1 = time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
-	strategy := strategy.NewFirstStrategy(store.NewRedisStore(), opt.Deposit, opt.TakeProfit, opt.Period, opt.Timeout)
 
-	return &binanceBot{
-		binance.NewClient(apiKey, apiSecret),
-		strategy,
-		strategy.Deposit,
-		opt.TimeFrame,
+	return &BinanceBot{
+		Client:   binance.NewClient(cfg.BinanceApi, cfg.BinanceSecret),
+		Strategy: strategy,
+		Config:   cfg,
 	}
 }
 
-func (b *binanceBot) CreateBuyOrder(qty string) error {
-	_, err := b.client.NewCreateOrderService().Symbol(tradePair).
+func (b *BinanceBot) CreateBuyOrder(qty string) error {
+
+	_, err := b.Client.NewCreateOrderService().Symbol(b.Config.Ticker).
 		Side(binance.SideTypeBuy).Type(binance.OrderTypeMarket).
 		Quantity(qty).Do(context.Background())
 	if err != nil {
@@ -61,8 +46,9 @@ func (b *binanceBot) CreateBuyOrder(qty string) error {
 	return err
 }
 
-func (b *binanceBot) CreateSellOrder(qty string) error {
-	_, err := b.client.NewCreateOrderService().Symbol(tradePair).
+func (b *BinanceBot) CreateSellOrder(qty string) error {
+
+	_, err := b.Client.NewCreateOrderService().Symbol(b.Config.Ticker).
 		Side(binance.SideTypeSell).Type(binance.OrderTypeMarket).
 		Quantity(qty).Do(context.Background())
 	if err != nil {
@@ -72,30 +58,56 @@ func (b *binanceBot) CreateSellOrder(qty string) error {
 	return err
 }
 
-func (b *binanceBot) HandleCandle(time2 time.Time, price float64) error {
+func (b *BinanceBot) GetBalance(name string) (float64, error) {
 
-	var buyValue float64
-	time3 := time1.Add(time.Minute * time.Duration(int64(b.timeFrame)))
+	res, err := b.Client.NewGetAccountService().Do(context.Background())
+	if err != nil {
+		fmt.Printf("error: %v", err)
+		return 0, err
+	}
+
+	for _, asset := range res.Balances {
+		if asset.Asset == name {
+			value, err := strconv.ParseFloat(asset.Free, 64)
+			if err != nil {
+				return 0, err
+			}
+
+			return value, nil
+		}
+	}
+
+	return 0, err
+}
+
+func (b *BinanceBot) HandleCandle(time2 time.Time, price float64) error {
+
+	time3 := time1.Add(time.Minute * time.Duration(int64(b.Config.TimeFrame)))
 	if time2.After(time3) {
-		buyValue = b.strategy.TryBuy(b.balance, time2, price, b.CreateBuyOrder)
-		b.balance -= buyValue
+
+		balance, err := b.GetBalance(b.Config.Ticker)
+		if err != nil {
+			fmt.Printf("error: %v", err)
+			return err
+		}
+		_ = b.Strategy.TryBuy(balance, time2, price, b.CreateBuyOrder)
+
 		time1 = time2
 	}
 
-	sellValue := b.strategy.TrySell(time2, price, b.CreateSellOrder)
-	b.balance += sellValue
+	_ = b.Strategy.TrySell(time2, price, b.CreateSellOrder)
 
 	return nil
 }
 
-func (b *binanceBot) Start() float64 {
+func (b *BinanceBot) Start() float64 {
 
 	fmt.Printf("====================================\n")
-	fmt.Printf("DEPOSIT     \t\t%f\n", b.strategy.Deposit)
-	fmt.Printf("RSI PERIOD  \t\t%d\n", b.strategy.RSIPeriod)
-	fmt.Printf("TAKE PROFIT \t\t%f\n", b.strategy.TakeProfit)
-	fmt.Printf("TIME FRAME  \t\t%f\n", b.timeFrame)
-	fmt.Printf("TIME OUT    \t\t%f\n", b.strategy.Timeout)
+	fmt.Printf("DEPOSIT     \t\t%f\n", b.Config.Deposit)
+	fmt.Printf("RSI PERIOD  \t\t%d\n", b.Config.RsiPeriod)
+	fmt.Printf("TAKE PROFIT \t\t%f\n", b.Config.TakeProfit)
+	fmt.Printf("TIME FRAME  \t\t%f\n", b.Config.TimeFrame)
+	fmt.Printf("HOLD TIME   \t\t%f\n", b.Config.HoldTime)
 	fmt.Printf("====================================\n")
 
 	wsKlineHandler := func(event *binance.WsKlineEvent) {
@@ -112,12 +124,12 @@ func (b *binanceBot) Start() float64 {
 		fmt.Println(err)
 	}
 
-	doneC, _, err := binance.WsKlineServe(tradePair, wsKlineInterval, wsKlineHandler, errHandler)
+	doneC, _, err := binance.WsKlineServe(b.Config.Ticker, wsKlineInterval, wsKlineHandler, errHandler)
 	if err != nil {
 		fmt.Println(err)
 		return 0
 	}
 	<-doneC
 
-	return b.strategy.Profit
+	return 0 // b.Strategy.Profit
 }
