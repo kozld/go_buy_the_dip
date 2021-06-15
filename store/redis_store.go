@@ -21,8 +21,8 @@ type RedisStore struct {
 func NewRedisStore() Store {
 	client := redis.NewClient(&redis.Options{
 		Addr:     "0.0.0.0:6379",
-		Password: redisPwd, // no password set
-		DB:       1,        // use default DB
+		Password: redisPwd,
+		DB:       1,
 	})
 
 	return &RedisStore{client}
