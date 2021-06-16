@@ -49,7 +49,7 @@ func (b *BinanceBot) CreateBuyOrder(price float64, qty string) error {
 		return err
 	}
 
-	msg := fmt.Sprintf("BUY #%s: $%.2f x %s", b.Config.Ticker, price, qty)
+	msg := fmt.Sprintf("BUY #%s: $%f x %s", b.Config.Ticker, price, qty)
 	err = b.SendMessage(msg)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -68,7 +68,7 @@ func (b *BinanceBot) CreateSellOrder(price float64, qty string) error {
 		return err
 	}
 
-	msg := fmt.Sprintf("SELL #%s: $%.2f x %s", b.Config.Ticker, price, qty)
+	msg := fmt.Sprintf("✅ SELL #%s: $%f x %s", b.Config.Ticker, price, qty)
 	err = b.SendMessage(msg)
 	if err != nil {
 		log.Printf("error: %v", err)
